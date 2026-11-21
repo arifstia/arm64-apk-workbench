@@ -10,14 +10,19 @@ Run with:
     python3 -m unittest discover -s tests -p 'test_*.py' -v
 """
 import argparse
+import inspect
 import sys
 import tempfile
+import typing
 import unittest
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT / "scripts"))
 
+import apk_audit  # noqa: E402
+import apk_cache  # noqa: E402
+import apk_patch  # noqa: E402
 import apk_workbench as wb  # noqa: E402
 
 
@@ -34,6 +39,27 @@ def make_cli(**overrides):
     }
     values.update(overrides)
     return wb.WorkbenchCLI(argparse.Namespace(**values))
+
+
+class TestAnnotationSafety(unittest.TestCase):
+    def test_every_annotation_name_resolves(self):
+        """Python 3.12 evaluates annotations eagerly; 3.14 defers them.
+
+        Force resolution here so an unimported typing name fails locally too,
+        instead of only breaking CI on older Python versions.
+        """
+        for mod in (wb, apk_audit, apk_cache, apk_patch):
+            for name, obj in vars(mod).items():
+                if getattr(obj, "__module__", None) != mod.__name__:
+                    continue
+                if inspect.isfunction(obj):
+                    with self.subTest(module=mod.__name__, function=name):
+                        typing.get_type_hints(obj)
+                elif inspect.isclass(obj):
+                    for mname, member in vars(obj).items():
+                        if inspect.isfunction(member):
+                            with self.subTest(module=mod.__name__, method=f"{name}.{mname}"):
+                                typing.get_type_hints(member)
 
 
 class TestBranding(unittest.TestCase):
