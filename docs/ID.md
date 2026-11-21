@@ -400,9 +400,9 @@ apk-workbench audit app.apk --mode deep
 ### v1.1.0 (In progress)
 - ✅ Cache audit per SHA-256 + mode (deep: 62 s → 0,58 s pada cache hit)
 - ✅ Opsi `--no-cache`
+- ✅ Patch apply/rollback + export bundle + `--dry-run`
 - 🔄 Better error handling & recovery
 - 🔄 More analysis reports
-- 🔄 Patch apply/rollback
 - ✅ FAST/DEEP mode (sudah ada sejak v1.0.0)
 
 ### v1.2.0 (Planned)

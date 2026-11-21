@@ -1,0 +1,8 @@
+# Python dependencies for ARM64 APK Workbench
+#
+# Only the audit engine needs a third-party Python package. The rest of the
+# CLI uses the standard library. Android binaries (APKTool, aapt2, JADX,
+# apksigner, zipalign) are installed by ./install.sh, not through pip.
+#
+# Pinned to the exact version verified on Ubuntu 26.04 ARM64 / Python 3.14.
+androguard==4.1.4

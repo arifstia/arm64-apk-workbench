@@ -32,9 +32,10 @@ analysis/.cache/
 !analysis/README.md
 !analysis/.gitkeep
 
-# Patches (keep templates)
+# Patches (keep templates; snapshots contain copied source files)
 patches/*.yaml
 patches/*.json
+patches/snapshots/
 !patches/README.md
 !patches/.gitkeep
 

@@ -30,7 +30,7 @@ jobs:
           python-version: '3.12'
 
       - name: Compile Python sources
-        run: python3 -m py_compile scripts/apk_workbench.py scripts/apk_audit.py scripts/apk_cache.py scripts/apk_build.py
+        run: python3 -m py_compile scripts/apk_workbench.py scripts/apk_audit.py scripts/apk_cache.py scripts/apk_patch.py scripts/apk_build.py
 
       - name: Run portable smoke tests
         run: python3 -m unittest discover -s tests -p 'test_*.py' -v
@@ -39,6 +39,26 @@ jobs:
         run: |
           ./apk-workbench --version
           ./apk-workbench --help
+
+      - name: Patch workflow (snapshot / diff / rollback / export / apply)
+        run: |
+          set -e
+          SRC=$(mktemp -d)/decoded/demo
+          mkdir -p "$SRC/smali/com/x" "$SRC/res/values"
+          printf '<manifest/>' > "$SRC/AndroidManifest.xml"
+          printf '.class public X' > "$SRC/smali/com/x/X.smali"
+          printf '<resources/>' > "$SRC/res/values/strings.xml"
+          ./apk-workbench patch -s "$SRC" | grep 'Snapshot created'
+          ./apk-workbench patch --list | grep 'snapshot'
+          printf '<manifest EDITED/>' > "$SRC/AndroidManifest.xml"
+          ./apk-workbench patch -s "$SRC" --diff | grep 'AndroidManifest.xml'
+          ./apk-workbench patch -s "$SRC" --rollback --dry-run | grep 'DRY-RUN'
+          grep -q 'EDITED' "$SRC/AndroidManifest.xml"
+          ./apk-workbench patch -s "$SRC" --rollback
+          grep -q '<manifest/>' "$SRC/AndroidManifest.xml"
+          ./apk-workbench patch -s "$SRC" --export --bundle-name ci_bundle
+          ./apk-workbench patch -s "$SRC" --apply --record ci_bundle --dry-run | grep 'DRY-RUN'
+          echo "OK: patch workflow"
 
       - name: CLI tool inventory (informational)
         run: ./apk-workbench tools

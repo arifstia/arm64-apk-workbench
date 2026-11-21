@@ -466,43 +466,111 @@ class WorkbenchCLI:
         return 1
 
     # ------------------------------------------------------------------- patch
+    def _patch_manager(self):
+        sys.path.insert(0, str(self.workspace / "scripts"))
+        from apk_patch import PatchManager
+        return PatchManager(
+            patches_dir=self.workspace / "patches",
+            backup_dir=self.workspace / "backup",
+            workspace=self.workspace,
+        )
+
+    def _resolve_patch_record(self, manager) -> Optional[Dict]:
+        """Resolve the record explicitly named with --record, else the newest for the source."""
+        explicit = getattr(self.args, "record", None)
+        if explicit:
+            path = Path(explicit).resolve()
+            if not path.is_file() and not path.suffix:
+                path = self.workspace / "patches" / f"patch_{explicit}.json"
+            return manager.load(path)
+        source = Path(self.args.source or self.args.apk).resolve()
+        return manager.latest_for(source)
+
+    @staticmethod
+    def _print_patch_changes(changes: Dict) -> None:
+        for label, key in (("Modified", "modified"), ("Added", "added"), ("Deleted", "deleted")):
+            items = changes.get(key, [])
+            print(f"  {label} ({len(items)}):")
+            for rel in items[:20]:
+                print(f"    - {rel}")
+            if len(items) > 20:
+                print(f"    ... and {len(items) - 20} more")
+
     def cmd_patch(self) -> int:
-        """Create a patch record documenting modifications to decoded sources."""
+        """Snapshot, diff, roll back, export or apply decoded-source patches."""
+        action = "diff" if getattr(self.args, "diff", False) else \
+                 "rollback" if getattr(self.args, "rollback", False) else \
+                 "export" if getattr(self.args, "export", False) else \
+                 "apply" if getattr(self.args, "apply", False) else \
+                 "list" if getattr(self.args, "list", False) else "create"
         source_arg = self.args.source or self.args.apk
-        if not source_arg:
+        if action not in ("list", "apply") and not source_arg:
             print("Error: source directory required. Usage: apk-workbench patch -s decoded/decoded_app_TIMESTAMP")
             return 1
+        if action == "list":
+            records = self._patch_manager().list_records()
+            if not records:
+                print("[+] No patch records yet.")
+                return 0
+            print(f"[+] {len(records)} patch record(s):")
+            for rec in records:
+                print(f"  {rec['id']:<44} {rec.get('kind', '?'):<9} {rec.get('timestamp', '')}")
+                print(f"    source: {rec.get('source', '-')}")
+            return 0
+
         source_dir = Path(source_arg).resolve()
         if not source_dir.is_dir():
             print(f"Error: source directory not found: {source_dir}")
             return 1
-        patch_dir = self.workspace / "patches"
-        patch_dir.mkdir(parents=True, exist_ok=True)
-        timestamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
-        patch_path = patch_dir / f"patch_{source_dir.name}_{timestamp}.json"
 
-        # Snapshot file hashes of relevant editable files for change tracking
-        snapshot = {}
-        for pattern in ("AndroidManifest.xml", "smali/**/*.smali", "res/**/*", "unknown/**/*"):
-            for p in source_dir.glob(pattern):
-                if p.is_file():
-                    try:
-                        snapshot[str(p.relative_to(source_dir))] = hashlib.sha256(p.read_bytes()).hexdigest()
-                    except Exception:
-                        pass
-        record = {
-            "timestamp": datetime.now(timezone.utc).isoformat() + "Z",
-            "source": str(source_dir),
-            "description": getattr(self.args, "output", "") or "Manual modifications (documented via patch command)",
-            "file_count": len(snapshot),
-            "files": snapshot,
-            "author": AUTHOR,
-        }
-        with open(patch_path, "w") as f:
-            json.dump(record, f, indent=2)
-        print(f"[+] Patch record created: {patch_path}")
-        print(f"    Tracked {len(snapshot)} files. Review and edit the record to describe your changes.")
-        return 0
+        manager = self._patch_manager()
+        dry_run = bool(getattr(self.args, "dry_run", False))
+        try:
+            if action == "create":
+                record = manager.create(source_dir, getattr(self.args, "description", "") or getattr(self.args, "output", "") or "")
+                path = manager.patches_dir / f"patch_{record['id']}.json"
+                print(f"[+] Snapshot created: {path}")
+                print(f"    Tracked {record['file_count']} editable files "
+                      f"(content: {record['content_dir']})")
+
+            elif action == "diff":
+                changes = manager.diff(source_dir, self._resolve_patch_record(manager))
+                total = sum(len(v) for v in changes.values())
+                print(f"[+] Changes since snapshot: {total}")
+                self._print_patch_changes(changes)
+
+            elif action == "rollback":
+                record = self._resolve_patch_record(manager)
+                result = manager.rollback(source_dir, record, dry_run=dry_run)
+                prefix = "[DRY-RUN] " if dry_run else "[+] "
+                print(f"{prefix}Rollback of {record['id']}:")
+                print(f"  Restored: {len(result['restored'])} file(s)")
+                print(f"  Backed up before overwrite: {len(result['backed_up'])} file(s)")
+                print(f"  Moved aside (created after snapshot): {len(result['removed_from_source'])} file(s)")
+                print("  Nothing was deleted; originals are under backup/.")
+
+            elif action == "export":
+                record = self._resolve_patch_record(manager)
+                bundle = manager.export(source_dir, record, getattr(self.args, "bundle_name", "") or "")
+                path = manager.patches_dir / f"patch_{bundle['id']}.json"
+                print(f"[+] Bundle exported: {path}")
+                print(f"    {bundle['file_count']} changed file(s) based on {record['id']}")
+
+            else:  # apply
+                if not getattr(self.args, "record", None):
+                    print("Error: --apply requires --record <patch-id-or-json-file>")
+                    return 1
+                record = self._resolve_patch_record(manager)
+                result = manager.apply(source_dir, record, dry_run=dry_run)
+                prefix = "[DRY-RUN] " if dry_run else "[+] "
+                print(f"{prefix}Applied {record['id']} to {source_dir}")
+                print(f"  Applied: {len(result['applied'])} file(s)")
+                print(f"  Backed up before overwrite: {len(result['backed_up'])} file(s)")
+                print("  Nothing was deleted; originals are under backup/.")
+            return 0
+        except (FileNotFoundError, NotADirectoryError, ValueError, json.JSONDecodeError) as e:
+            print(f"Error: {e}")
+            return 1
 
     # --------------------------------------------------------------------- run
     def run(self) -> int:
@@ -535,7 +603,7 @@ Commands:
   backup    Create timestamped backup of APK
   build     Build + zipalign + sign + verify from decoded source (-s DIR)
   verify    Verify APK signature and print certificates
-  patch     Record a snapshot of modifications in decoded source (-s DIR)
+  patch     Manage decoded-source snapshots: create/diff/rollback/export/apply
 
 Performance modes (audit):
   fast      Metadata, certificate & manifest only; quick DEX count
@@ -546,6 +614,15 @@ Audit caching:
   Results are cached per APK SHA-256 + mode in analysis/.cache/ (deep audits
   become near-instant on repeat). Use --no-cache to force a full run.
 
+Patch management (patch):
+  patch -s DIR                    Snapshot all editable files
+  patch -s DIR --diff             Show what changed since the snapshot
+  patch -s DIR --rollback         Restore snapshot (originals backed up)
+  patch -s DIR --export           Export edits as a reusable bundle
+  patch -s DIR --apply --record ID   Apply a bundle to another source
+  patch --list                    List all records
+  Add --dry-run to preview rollback/apply; --record selects a specific record.
+
 Examples:
   apk-workbench doctor
   apk-workbench audit app.apk --mode fast
@@ -554,6 +631,9 @@ Examples:
   apk-workbench backup app.apk
   apk-workbench build -s decoded/decoded_app_20261121_030938
   apk-workbench verify output/signed_app_20261121_030938.apk
+  apk-workbench patch -s decoded/decoded_app_20261121_030938
+  apk-workbench patch -s decoded/decoded_app_20261121_030938 --diff
+  apk-workbench patch -s decoded/decoded_app_20261121_030938 --rollback --dry-run
 """
     )
     parser.add_argument("--version", action="version", version=f"apk-workbench {VERSION} (by {AUTHOR})")
@@ -568,6 +648,26 @@ Examples:
                         help="Performance mode for audit (default: normal)")
     parser.add_argument("--no-cache", action="store_true",
                         help="Force a full audit, ignoring any cached result")
+
+    patch_group = parser.add_mutually_exclusive_group()
+    patch_group.add_argument("--diff", action="store_true",
+                             help="patch: show file changes since a snapshot")
+    patch_group.add_argument("--rollback", action="store_true",
+                             help="patch: restore files from a snapshot (backs up first)")
+    patch_group.add_argument("--export", action="store_true",
+                             help="patch: export changed files as a reusable bundle")
+    patch_group.add_argument("--apply", action="store_true",
+                             help="patch: apply a bundle/snapshot (requires --record)")
+    patch_group.add_argument("--list", action="store_true",
+                             help="patch: list all patch records")
+    parser.add_argument("--record", metavar="ID|FILE",
+                        help="patch: specific record id or JSON file (default: newest for source)")
+    parser.add_argument("--dry-run", action="store_true",
+                        help="patch: preview rollback/apply without writing")
+    parser.add_argument("--description", metavar="TEXT",
+                        help="patch: description for a new snapshot")
+    parser.add_argument("--bundle-name", metavar="NAME",
+                        help="patch: name for an exported bundle")
     args = parser.parse_args()
     cli = WorkbenchCLI(args)
     sys.exit(cli.run())

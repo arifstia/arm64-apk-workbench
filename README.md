@@ -38,7 +38,7 @@ git clone https://github.com/arifstia/arm64-apk-workbench.git && cd arm64-apk-wo
 | **Build APK** | Build ulang dari source hasil decode → zipalign → tanda tangan → verifikasi |
 | **Sign & Verify** | Signing dengan test key dan verifikasi v1/v2/v3 via apksigner |
 | **Backup otomatis** | Salinan APK dengan timestamp sebelum modifikasi |
-| **Patch record** | Catatan perubahan tersimpan di `patches/` |
+| **Patch management** | Snapshot, diff, rollback, export & apply — semuanya dibackup |
 | **Ramah ARM64** | RAM rendah, pemrosesan berurutan, tanpa binary x86_64 |
 | **Aman** | APK asli tidak pernah ditimpa, backup tidak dihapus, tidak install APK otomatis |
 
@@ -160,7 +160,7 @@ apk-workbench verify output/signed_decoded_app_TIMESTAMP.apk
 | `backup` | Backup APK ber-timestamp | `apk-workbench backup app.apk` |
 | `build` | Build + sign + verify | `apk-workbench build -s decoded/decoded_app_TIMESTAMP` |
 | `verify` | Verifikasi tanda tangan | `apk-workbench verify output/app.apk` |
-| `patch` | Rekam perubahan | `apk-workbench patch -s decoded/decoded_app_TIMESTAMP -o "deskripsi"` |
+| `patch` | Kelola snapshot/rollback | `apk-workbench patch -s decoded/decoded_app_TIMESTAMP` |
 
 Opsi global:
 
@@ -170,6 +170,12 @@ Opsi global:
 -o, --output VALUE          # Output / deskripsi patch
 -v, --verbose               # Output lebih detail
 --no-cache                  # Paksa audit penuh, abaikan cache
+--diff                      # patch: lihat perubahan sejak snapshot
+--rollback                  # patch: pulihkan dari snapshot
+--export                    # patch: ekspor perubahan jadi bundle
+--apply --record ID         # patch: terapkan bundle ke source lain
+--list                      # patch: daftar semua record
+--dry-run                   # patch: pratinjau tanpa menulis
 ```
 
 ### Mode Audit
@@ -184,6 +190,26 @@ Opsi global:
 Audit ulang langsung memakai cache (deep: 62 detik → 0,58 detik). Gunakan `--no-cache`
 untuk memaksa analisis penuh, atau hapus `analysis/.cache/` untuk mengosongkan cache.
 
+### Manajemen Patch
+
+Sejak v1.1.0, `patch` benar-benar menyimpan salinan file — bukan sekadar hash — sehingga
+perubahan bisa dibandingkan dan dipulihkan:
+
+```bash
+apk-workbench patch -s decoded/decoded_app_TIMESTAMP              # snapshot awal
+apk-workbench patch -s decoded/decoded_app_TIMESTAMP --diff       # file berubah / baru / hilang
+apk-workbench patch -s decoded/decoded_app_TIMESTAMP --rollback --dry-run
+apk-workbench patch -s decoded/decoded_app_TIMESTAMP --rollback   # pulihkan (backup dulu)
+apk-workbench patch --list                                        # semua record
+apk-workbench patch -s decoded/app --export --bundle-name fix_x    # ekspor bundle
+apk-workbench patch -s decoded/app2 --apply --record fix_x         # terapkan ke source lain
+```
+
+File yang ditimpa dipindah ke `backup/` sebelum ditulis; file baru yang muncul setelah
+snapshot juga dipindah ke `backup/` saat rollback (tidak pernah dihapus). Symlink dan path
+traversal ditolak. Record lama yang hanya berisi hash tidak bisa di-restore — buat snapshot
+baru terlebih dahulu.
+
 ### Struktur Workspace
 
 ```
@@ -193,7 +219,7 @@ arm64-apk-workbench/
 ├── backup/         # Backup dengan timestamp
 ├── decoded/        # Resource & Smali hasil decode
 ├── analysis/       # Laporan audit (JSON + Markdown)
-├── patches/        # Catatan modifikasi
+├── patches/        # Snapshot & bundle patch (patches/snapshots/)
 ├── build/          # APK antara & keystore test
 ├── output/         # APK final yang sudah ditandatangani
 ├── logs/           # Log eksekusi
@@ -283,7 +309,7 @@ MIT License — lihat [LICENSE](LICENSE). Copyright (c) 2026 **arifstia**.
 | **Build APK** | Rebuild from decoded source → zipalign → sign → verify |
 | **Sign & Verify** | Test-key signing and v1/v2/v3 verification via apksigner |
 | **Automatic backup** | Timestamped copy before any modification |
-| **Patch records** | Change records stored in `patches/` |
+| **Patch management** | Snapshot, diff, rollback, export & apply — always backed up |
 | **ARM64 friendly** | Low RAM, sequential processing, no x86_64 binaries |
 | **Safe** | Originals are never overwritten, backups never deleted, no auto-install |
 
@@ -407,7 +433,7 @@ apk-workbench verify output/signed_decoded_app_TIMESTAMP.apk
 | `backup` | Timestamped backup | `apk-workbench backup app.apk` |
 | `build` | Build + sign + verify | `apk-workbench build -s decoded/decoded_app_TIMESTAMP` |
 | `verify` | Verify signature | `apk-workbench verify output/app.apk` |
-| `patch` | Record changes | `apk-workbench patch -s decoded/decoded_app_TIMESTAMP -o "description"` |
+| `patch` | Manage snapshots/rollback | `apk-workbench patch -s decoded/decoded_app_TIMESTAMP` |
 
 Global options:
 
@@ -417,6 +443,12 @@ Global options:
 -o, --output VALUE          # Output / patch description
 -v, --verbose               # Verbose output
 --no-cache                  # Force a full audit, ignore cache
+--diff                      # patch: show changes since snapshot
+--rollback                  # patch: restore from snapshot
+--export                    # patch: export edits as a bundle
+--apply --record ID         # patch: apply a bundle to another source
+--list                      # patch: list every record
+--dry-run                   # patch: preview without writing
 ```
 
 ### Audit Modes
@@ -431,6 +463,25 @@ Global options:
 Repeat audits reuse the cache (deep: 62 s → 0.58 s). Use `--no-cache` to force a full
 analysis, or delete `analysis/.cache/` to clear it.
 
+### Patch Management
+
+Since v1.1.0, `patch` stores real file copies — not just hashes — so edits can be compared
+and restored:
+
+```bash
+apk-workbench patch -s decoded/decoded_app_TIMESTAMP               # baseline snapshot
+apk-workbench patch -s decoded/decoded_app_TIMESTAMP --diff        # modified / added / deleted
+apk-workbench patch -s decoded/decoded_app_TIMESTAMP --rollback --dry-run
+apk-workbench patch -s decoded/decoded_app_TIMESTAMP --rollback    # restore (backup first)
+apk-workbench patch --list                                         # every record
+apk-workbench patch -s decoded/app --export --bundle-name fix_x     # export a bundle
+apk-workbench patch -s decoded/app2 --apply --record fix_x          # apply to another source
+```
+
+Overwritten files are moved to `backup/` before writing; files created after the snapshot
+are moved to `backup/` on rollback (nothing is ever deleted). Symlinks and path traversal are
+rejected. Legacy hash-only records cannot be restored — create a new snapshot first.
+
 ### Workspace Structure
 
 ```
@@ -440,7 +491,7 @@ arm64-apk-workbench/
 ├── backup/         # Timestamped backups
 ├── decoded/        # Decoded resources & Smali
 ├── analysis/       # Audit reports (JSON + Markdown)
-├── patches/        # Modification records
+├── patches/        # Patch snapshots & bundles (patches/snapshots/)
 ├── build/          # Intermediate APKs & test keystore
 ├── output/         # Final signed APKs
 ├── logs/           # Execution logs

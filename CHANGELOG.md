@@ -12,6 +12,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Opsi `--no-cache` untuk memaksa analisis penuh
 - Report JSON/Markdown menandai `cache.hit` dan asal timestamp saat hasil diambil dari cache
 - `scripts/apk_cache.py` + 8 unit test khusus cache
+- **Patch management sungguhan**: `patch` sekarang menyimpan salinan file (bukan hanya hash)
+  - `patch -s DIR` membuat snapshot; `--diff` melihat perubahan; `--rollback` memulihkan
+  - `--export` menghasilkan bundle; `--apply --record ID` menerapkannya ke source lain
+  - `--list`, `--dry-run`, dan `--record` untuk kontrol penuh
+  - Semua timpaan didahului backup; tidak ada file yang dihapus; symlink dan path traversal ditolak
+  - `scripts/apk_patch.py` + 10 unit test filesystem; `requirements.txt` (androguard 4.1.4 terpin)
 
 ### Measured
 - Deep audit `input/test.apk`: **62 s → 0,58 s** pada cache hit (~106× lebih cepat)
@@ -81,9 +87,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### [1.1.0] - In progress
 - ~~Performance optimization with caching~~ — done in Unreleased
+- ~~Patch management system (apply/rollback)~~ — done in Unreleased
 - Improved error handling and recovery
 - Enhanced analysis reports
-- Patch management system (apply/rollback)
 - ~~Fast mode for quick audits~~ — shipped in 1.0.0
 - ~~Deep mode for comprehensive analysis~~ — shipped in 1.0.0
 
