@@ -64,7 +64,7 @@ class TestAnnotationSafety(unittest.TestCase):
 
 class TestBranding(unittest.TestCase):
     def test_version_is_defined(self):
-        self.assertEqual(wb.VERSION, "1.0.1")
+        self.assertEqual(wb.VERSION, "1.1.0")
 
     def test_banner_has_author_and_repo(self):
         self.assertIn("arifstia", wb.BANNER)

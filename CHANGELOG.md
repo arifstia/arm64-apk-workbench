@@ -5,7 +5,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased] — menuju 1.1.0
+## [1.1.0] - 2026-11-21
 
 ### Added
 - **Audit caching**: hasil audit disimpan per SHA-256 APK + mode + versi skema di `analysis/.cache/`
@@ -85,18 +85,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Upcoming
 
-### [1.1.0] - In progress
-- ~~Performance optimization with caching~~ — done in Unreleased
-- ~~Patch management system (apply/rollback)~~ — done in Unreleased
-- Improved error handling and recovery
-- Enhanced analysis reports
-- ~~Fast mode for quick audits~~ — shipped in 1.0.0
-- ~~Deep mode for comprehensive analysis~~ — shipped in 1.0.0
-
 ### [1.2.0] - Planned
+- Improved error handling and recovery
+- Enhanced analysis reports (stable JSON schema, risk summary, audit diff)
 - Advanced project analysis
 - Improved patch management
 - Additional automation workflows
+
+> Catatan: `v1.1.0` telah merilis audit caching dan patch management. Fast/deep mode
+> sudah tersedia sejak `v1.0.0`.
 
 ### [2.0.0] - Planned
 - Modular architecture

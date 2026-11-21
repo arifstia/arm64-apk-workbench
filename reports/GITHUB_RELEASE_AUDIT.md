@@ -2,16 +2,17 @@
 
 **Audit date:** 2026-11-21  
 **Project:** `arm64-apk-workbench`  
-**Version:** 1.0.1 (audit awal dilakukan untuk 1.0.0; rilis 1.0.1 mencakup perbaikan portabilitas)  
+**Version:** 1.1.0 (audit awal untuk 1.0.0; 1.0.1 perbaikan portabilitas; 1.1.0 menambah audit caching & patch management)  
 **Author / Maintainer:** arifstia — https://github.com/arifstia  
 **License:** MIT (original code); third-party tool licenses preserved  
 **Workspace:** `/root/projects/apk-workbench`  
 **Platform:** Ubuntu 26.04.1 LTS, Linux `aarch64` (ARM64), Python 3.14.4, OpenJDK 25.0.5.1
 
 > Scope: local build + verification readiness for GitHub release.
-> Status terakhir: repository, commit, tag `v1.0.0` dan release telah dipublikasikan setelah
-> persetujuan eksplisit. Rilis `v1.0.1` menyusul untuk memasukkan perbaikan portabilitas yang
-> tidak ada di arsip source `v1.0.0`. Lihat `reports/PROMOTION_STATUS.md`.
+> Status terakhir: repository, commit, tag `v1.0.0`, `v1.0.1` dan `v1.1.0` telah dipublikasikan
+> setelah persetujuan eksplisit. `v1.0.1` memasukkan perbaikan portabilitas yang tidak ada di
+> arsip `v1.0.0`; `v1.1.0` memasukkan audit caching dan patch management dengan 30 unit test
+> serta CI hijau. Lihat `reports/PROMOTION_STATUS.md` dan `reports/PERFORMANCE_REPORT.md`.
 
 ---
 
@@ -211,6 +212,7 @@ build/, output/, decoded/, backup/, input/*.apk, analysis/*.json, logs/, *.jks
 - [ ] Confirm no secrets, APKs, or test keys are staged (`git status` + `.gitignore` rules).
 - [x] Tag `v1.0.0` and create the GitHub release **after explicit approval** (given by maintainer).
 - [x] Tag `v1.0.1` to ship the portability fix in the downloadable source archive.
+- [x] Tag `v1.1.0` to ship audit caching and full patch management.
 
 ---
 

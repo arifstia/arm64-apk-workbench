@@ -384,7 +384,14 @@ apk-workbench audit app.apk --mode deep
 
 ## Roadmap
 
-### v1.0.1 (Current)
+### v1.1.0 (Current)
+- ✅ Cache audit per SHA-256 + mode — deep: 62 detik → 0,58 detik pada cache hit
+- ✅ Opsi `--no-cache` + penanda `cache.hit` di laporan JSON/Markdown
+- ✅ Patch management: snapshot, diff, rollback, export bundle, apply, `--dry-run`
+- ✅ Backup otomatis sebelum timpa; tidak ada file yang dihapus
+- ✅ `requirements.txt` dengan androguard 4.1.4 terpin — 30 unit test, CI hijau
+
+### v1.0.1
 - ✅ Perbaikan portabilitas CLI (bisa di-clone ke direktori mana saja)
 - ✅ APKTool 3.0.3 + aapt2 ARM64 native + framework API 36 (targetSdk 37)
 - ✅ GitHub Actions smoke test & dokumentasi bilingual
@@ -396,14 +403,6 @@ apk-workbench audit app.apk --mode deep
 - ✅ OpenCode integration
 - ✅ ARM64 support
 - ✅ Installer & documentation
-
-### v1.1.0 (In progress)
-- ✅ Cache audit per SHA-256 + mode (deep: 62 s → 0,58 s pada cache hit)
-- ✅ Opsi `--no-cache`
-- ✅ Patch apply/rollback + export bundle + `--dry-run`
-- 🔄 Better error handling & recovery
-- 🔄 More analysis reports
-- ✅ FAST/DEEP mode (sudah ada sejak v1.0.0)
 
 ### v1.2.0 (Planned)
 - 🔄 Advanced project analysis
