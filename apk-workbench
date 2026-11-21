@@ -1,0 +1,18 @@
+#!/usr/bin/env python3
+"""
+apk-workbench - ARM64 APK Analysis and Modification Toolkit
+Created and maintained by arifstia
+https://github.com/arifstia/arm64-apk-workbench
+"""
+import sys
+from pathlib import Path
+
+# Add scripts directory to path
+workspace = Path("/root/projects/apk-workbench")
+sys.path.insert(0, str(workspace / "scripts"))
+
+# Import and run the CLI
+from apk_workbench import main
+
+if __name__ == "__main__":
+    main()

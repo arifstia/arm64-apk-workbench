@@ -1,0 +1,37 @@
+#!/bin/bash
+# aapt2 launcher — native ARM64 first, distro fallback
+# Created and maintained by arifstia, Copyright (c) 2026 arifstia
+set -euo pipefail
+HERE="$(cd "$(dirname "$0")" && pwd)"
+ARM64_BIN="${HERE}/aapt2-arm64"
+if [[ -x "$ARM64_BIN" ]]; then
+    exec "$ARM64_BIN" "$@"
+fi
+REAL_AAPT2="$(readlink -f /usr/bin/aapt2)"
+SDK_PLATFORMS="/usr/lib/android-sdk/platforms"
+args=(); is_link=0; has_include=0; target_sdk=""
+for arg in "$@"; do
+    case "$arg" in
+        --no-compile-sdk-metadata) ;;
+        link) is_link=1; args+=("$arg") ;;
+        -I) has_include=1; args+=("$arg") ;;
+        --target-sdk-version) args+=("$arg"); target_sdk="__NEXT__" ;;
+        *) if [[ "$target_sdk" == "__NEXT__" ]]; then target_sdk="$arg"; fi; args+=("$arg") ;;
+    esac
+done
+if [[ $is_link -eq 1 && $has_include -eq 0 ]]; then
+    jar="${SDK_PLATFORMS}/android-23/android.jar"
+    if [[ -n "$target_sdk" && "$target_sdk" != "__NEXT__" ]]; then
+        candidate="${SDK_PLATFORMS}/android-${target_sdk}/android.jar"
+        [[ -f "$candidate" ]] && jar="$candidate"
+    fi
+    if [[ -f "$jar" ]]; then
+        out=(); inserted=0
+        for arg in "${args[@]}"; do
+            out+=("$arg")
+            if [[ $inserted -eq 0 && "$arg" == "link" ]]; then out+=("-I" "$jar"); inserted=1; fi
+        done
+        args=("${out[@]}")
+    fi
+fi
+exec "$REAL_AAPT2" "${args[@]}"

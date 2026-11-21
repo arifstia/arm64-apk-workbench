@@ -1,0 +1,4 @@
+#!/bin/bash
+# APKTool 3.x wrapper - project-local, verified JAR
+JAR="$(cd "$(dirname "$0")/.." && pwd)/apktool/apktool_3.0.3.jar"
+exec java -Xmx1024m -Dfile.encoding=utf-8 -jar "$JAR" "$@"

@@ -1,0 +1,277 @@
+#!/usr/bin/env python3
+"""
+apk-workbench - Unified CLI for APK analysis and modification.
+Handles long-running apktool decode on ARM64 with appropriate timeouts.
+"""
+import argparse
+import json
+import os
+import shutil
+import subprocess
+import sys
+from datetime import datetime, timezone
+from pathlib import Path
+from typing import List, Optional
+
+class WorkbenchCLI:
+    def __init__(self, args: argparse.Namespace):
+        self.args = args
+        self.workspace = Path("/root/projects/apk-workbench")
+        self.tools_versions = {}
+
+    def run_cmd(self, cmd: List[str], timeout: Optional[int] = None) -> subprocess.CompletedProcess:
+        """Run a command with optional timeout. None = no timeout."""
+        if timeout is None:
+            # Use very long timeout for decode operations
+            timeout = 900  # 15 minutes default
+        return subprocess.run(cmd, capture_output=True, text=True, timeout=timeout)
+
+    def cmd_doctor(self) -> int:
+        """Check system dependencies and environment."""
+        print("=== apk-workbench doctor ===")
+        print(f"Workspace: {self.workspace}")
+        print()
+
+        checks = [
+            ("Architecture", lambda: self.run_cmd(["uname", "-m"])),
+            ("OS", lambda: self.run_cmd(["cat", "/etc/os-release"])),
+            ("Kernel", lambda: self.run_cmd(["uname", "-r"])),
+            ("Java", lambda: self.run_cmd(["java", "-version"])),
+            ("Python", lambda: self.run_cmd(["python3", "--version"])),
+            ("pip", lambda: self.run_cmd(["python3", "-m", "pip", "--version"])),
+            ("Node.js", lambda: self.run_cmd(["node", "--version"])),
+            ("OpenCode", lambda: self.run_cmd(["opencode", "--version"])),
+            ("JADX", lambda: self.run_cmd(["jadx", "--version"])),
+            ("APKTool", lambda: self.run_cmd(["apktool", "--version"])),
+            ("apksigner", lambda: self.run_cmd(["apksigner", "--version"])),
+            ("zipalign", lambda: self.run_cmd(["which", "zipalign"])),
+            ("aapt", lambda: self.run_cmd(["aapt", "version"])),
+            ("aapt2", lambda: self.run_cmd(["aapt2", "version"])),
+            ("smali", lambda: self.run_cmd(["smali", "--version"])),
+            ("baksmali", lambda: self.run_cmd(["baksmali", "--version"])),
+            ("Androguard (venv)", lambda: self.run_cmd([str(self.workspace / ".venv/bin/androguard"), "--version"])),
+            ("RAM", lambda: self.run_cmd(["free", "-h"])),
+            ("Disk", lambda: self.run_cmd(["df", "-h", "/"])),
+        ]
+
+        failed = 0
+        for name, check in checks:
+            try:
+                result = check()
+                if result.returncode == 0:
+                    out = result.stdout.strip().split('\n')[0]
+                    print(f"✓ {name}: {out}")
+                else:
+                    print(f"✗ {name}: FAILED ({result.stderr.strip()})")
+                    failed += 1
+            except Exception as e:
+                print(f"✗ {name}: ERROR - {e}")
+                failed += 1
+
+        print()
+        if failed == 0:
+            print("All checks passed!")
+            return 0
+        else:
+            print(f"{failed} checks failed.")
+            return 1
+
+    def cmd_tools(self) -> int:
+        """List all installed tools with versions."""
+        print("=== Installed Tools ===")
+        tools = {
+            "Java": ["java", "-version"],
+            "javac": ["javac", "-version"],
+            "Python": ["python3", "--version"],
+            "pip": ["python3", "-m", "pip", "--version"],
+            "Node.js": ["node", "--version"],
+            "OpenCode": ["opencode", "--version"],
+            "JADX": ["jadx", "--version"],
+            "APKTool": ["apktool", "--version"],
+            "apksigner": ["apksigner", "--version"],
+            "zipalign": ["which", "zipalign"],
+            "aapt": ["aapt", "version"],
+            "aapt2": ["aapt2", "version"],
+            "smali": ["smali", "--version"],
+            "baksmali": ["baksmali", "--version"],
+            "Androguard": [str(self.workspace / ".venv/bin/androguard"), "--version"],
+        }
+        for name, cmd in tools.items():
+            try:
+                result = self.run_cmd(cmd)
+                if result.returncode == 0:
+                    out = result.stdout.strip().split('\n')[0]
+                    if result.stderr:
+                        out += " | " + result.stderr.strip().split('\n')[0]
+                    print(f"{name}: {out}")
+                else:
+                    print(f"{name}: NOT FOUND")
+            except Exception:
+                print(f"{name}: ERROR")
+        return 0
+
+    def cmd_audit(self) -> int:
+        """Run APK audit."""
+        if not self.args.apk:
+            print("Error: APK path required for audit")
+            return 1
+        apk_path = Path(self.args.apk).resolve()
+        if not apk_path.exists():
+            print(f"Error: APK not found: {apk_path}")
+            return 1
+        output_dir = self.args.output or (self.workspace / "analysis")
+        sys.path.insert(0, str(self.workspace / "scripts"))
+        from apk_audit import APKAuditor
+        auditor = APKAuditor(str(apk_path), str(output_dir))
+        auditor.run()
+        return 0
+
+    def cmd_decode(self) -> int:
+        """Decode APK resources and Smali. Takes longer on ARM64."""
+        if not self.args.apk:
+            print("Error: APK path required for decode")
+            return 1
+        apk_path = Path(self.args.apk).resolve()
+        if not apk_path.exists():
+            print(f"Error: APK not found: {apk_path}")
+            return 1
+        output_dir = self.args.output or (self.workspace / "decoded")
+        output_dir = Path(output_dir)
+        timestamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
+        decoded_path = output_dir / f"decoded_{apk_path.stem}_{timestamp}"
+        try:
+            self.run_cmd(["apktool", "d", "-f", "-o", str(decoded_path), str(apk_path)], timeout=1800)
+            print(f"[+] Decoded to: {decoded_path}")
+            return 0
+        except subprocess.TimeoutExpired as e:
+            print(f"[!] Decode timed out after 600s, but partial decode may exist at {decoded_path}")
+            # Check if partial decode happened
+            if decoded_path.exists():
+                files = list(decoded_path.rglob("*")) if hasattr(decoded_path, 'rglob') else []
+                print(f"[!] Partial decode completed with {len(files)} files")
+            return 1
+        except Exception as e:
+            print(f"[-] Decode failed: {e}")
+            return 1
+
+    def cmd_analyze(self) -> int:
+        """Analyze APK manifest and structure (alias for audit)."""
+        return self.cmd_audit()
+
+    def cmd_backup(self) -> int:
+        """Create backup of APK."""
+        if not self.args.apk:
+            print("Error: APK path required for backup")
+            return 1
+        apk_path = Path(self.args.apk).resolve()
+        if not apk_path.exists():
+            print(f"Error: APK not found: {apk_path}")
+            return 1
+        backup_dir = self.workspace / "backup"
+        backup_dir.mkdir(parents=True, exist_ok=True)
+        timestamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
+        backup_path = backup_dir / f"{apk_path.stem}_{timestamp}{apk_path.suffix}"
+        shutil.copy2(apk_path, backup_path)
+        print(f"[+] Backup created: {backup_path}")
+        return 0
+
+    def cmd_build(self) -> int:
+        """Build APK from decoded source."""
+        if not self.args.source:
+            print("Error: Source directory required for build")
+            return 1
+        source_dir = Path(self.args.source).resolve()
+        if not source_dir.exists():
+            print(f"Error: Source directory not found: {source_dir}")
+            return 1
+        build_dir = self.workspace / "build"
+        build_dir.mkdir(parents=True, exist_ok=True)
+        timestamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
+        output_apk = build_dir / f"rebuild_{source_dir.name}_{timestamp}.apk"
+        try:
+            self.run_cmd(["apktool", "b", "-f", "-o", str(output_apk), str(source_dir)])
+            print(f"[+] Built APK: {output_apk}")
+            return 0
+        except Exception as e:
+            print(f"[-] Build failed: {e}")
+            return 1
+
+    def cmd_verify(self) -> int:
+        """Verify APK signature."""
+        if not self.args.apk:
+            print("Error: APK path required for verify")
+            return 1
+        apk_path = Path(self.args.apk).resolve()
+        if not apk_path.exists():
+            print(f"Error: APK not found: {apk_path}")
+            return 1
+        try:
+            result = self.run_cmd(["apksigner", "verify", "--verbose", "--print-certs", str(apk_path)])
+            if result.returncode == 0:
+                print("✓ APK signature is VALID")
+                print(result.stdout)
+                return 0
+            else:
+                print("✗ APK signature is INVALID")
+                print(result.stderr)
+                return 1
+        except Exception as e:
+            print(f"[-] Verification failed: {e}")
+            return 1
+
+    def run(self) -> int:
+        commands = {
+            "doctor": self.cmd_doctor,
+            "tools": self.cmd_tools,
+            "audit": self.cmd_audit,
+            "decode": self.cmd_decode,
+            "analyze": self.cmd_analyze,
+            "backup": self.cmd_backup,
+            "build": self.cmd_build,
+            "verify": self.cmd_verify,
+        }
+        if self.args.command not in commands:
+            print(f"Unknown command: {self.args.command}")
+            return 1
+        return commands[self.args.command]()
+
+
+def main():
+    parser = argparse.ArgumentParser(
+        description="apk-workbench - Android APK Modification Workbench",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog="""
+Commands:
+  doctor    Check system dependencies and environment
+  tools     List installed tools and versions
+  audit     Full APK audit (metadata, manifest, DEX, native libs, resources)
+  decode    Decode APK resources and Smali
+  analyze   Alias for audit
+  backup    Create backup of APK
+  build     Build APK from decoded source
+  verify    Verify APK signature
+
+Examples:
+  apk-workbench doctor
+  apk-workbench audit app.apk
+  apk-workbench decode app.apk -o /path/to/output
+  apk-workbench backup app.apk
+  apk-workbench build /path/to/decoded -o output.apk
+  apk-workbench verify app.apk
+"""
+    )
+    parser.add_argument("command", choices=[
+        "doctor", "tools", "audit", "decode", "analyze", "backup", "build", "verify"
+    ], help="Command to execute")
+    parser.add_argument("apk", nargs="?", help="Path to APK file")
+    parser.add_argument("-s", "--source", help="Source directory for build command")
+    parser.add_argument("-o", "--output", help="Output directory")
+    parser.add_argument("-v", "--verbose", action="store_true", help="Verbose output")
+    args = parser.parse_args()
+
+    cli = WorkbenchCLI(args)
+    sys.exit(cli.run())
+
+
+if __name__ == "__main__":
+    main()

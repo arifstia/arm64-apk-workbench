@@ -1,0 +1,124 @@
+# ARM64 APK Workbench - Git Ignore Rules
+# Created and maintained by arifstia
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+.env
+pip-wheel-metadata/
+
+# Virtual environments
+.venv/
+env/
+ENV/
+
+# Build outputs
+build/
+output/
+*.apk
+*.ap_
+
+# Decoded APKs
+decoded/
+*.apktool.yml
+
+# Analysis reports (keep templates, ignore generated)
+analysis/*.json
+analysis/*.md
+!analysis/README.md
+!analysis/.gitkeep
+
+# Patches (keep templates)
+patches/*.yaml
+patches/*.json
+!patches/README.md
+!patches/.gitkeep
+
+# Backup files (user data)
+backup/
+original/
+input/*.apk
+!input/.gitkeep
+
+# Logs
+logs/
+*.log
+
+# Reports
+reports/*.md
+reports/*.json
+reports/*.txt
+!reports/README.md
+!reports/.gitkeep
+!reports/PERFORMANCE_REPORT.md
+!reports/GITHUB_RELEASE_AUDIT.md
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Tool binaries (managed by installer)
+# Downloaded JARs and generated frameworks are NOT committed.
+tools/apktool/*.jar
+tools/apktool/framework/
+/opt/jadx-*
+
+# Native ARM64 aapt2 binary (downloaded by installer, SHA-256 verified)
+tools/bin/aapt2-arm64
+
+# Keep project-local wrappers (small, source-controlled, architecture-agnostic)
+!tools/
+!tools/bin/
+!tools/bin/apktool
+!tools/bin/aapt2
+
+# Keys and certificates (NEVER commit)
+*.jks
+*.keystore
+*.p12
+*.pfx
+*.pem
+*.key
+*.crt
+config/test.keystore
+build/keys/
+
+# Temporary files
+/tmp/
+*.tmp
+*.temp
+
+# Cache
+.cache/
+*.cache
+
+# Node.js (if used)
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# OpenCode
+.opencode/
+
+# Environment-specific
+.env.local
+.env.*.local
+
+# Test artifacts
+test-results/
+coverage/
+htmlcov/
+.pytest_cache/
+.coverage
+.tox/
