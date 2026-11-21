@@ -1,0 +1,83 @@
+name: Smoke Test
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: smoke-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # Architecture-independent checks: the CLI itself is pure Python and must
+  # work even when the Android toolchain is not installed.
+  cli:
+    name: CLI (x86_64)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Compile Python sources
+        run: python3 -m py_compile scripts/apk_workbench.py scripts/apk_audit.py scripts/apk_build.py
+
+      - name: Run portable smoke tests
+        run: python3 -m unittest discover -s tests -p 'test_*.py' -v
+
+      - name: CLI version and help
+        run: |
+          ./apk-workbench --version
+          ./apk-workbench --help
+
+      - name: CLI tool inventory (informational)
+        run: ./apk-workbench tools
+
+      - name: Doctor (informational - full toolchain is not installed in CI)
+        continue-on-error: true
+        run: ./apk-workbench doctor
+
+      - name: Guard against committed binaries and secrets
+        run: |
+          if git ls-files | grep -Ei '\.(jks|keystore|p12|pfx|pem|key|apk)$|tools/bin/aapt2-arm64|tools/apktool/.*\.jar'; then
+            echo "::error::A binary/secret/APK is tracked in git"
+            exit 1
+          fi
+          echo "OK: no binaries, keys or APKs tracked"
+
+  # The real toolchain is ARM64-only. This job is advisory because hosted ARM
+  # runners are not available on every plan; the verified local run is recorded
+  # in reports/GITHUB_RELEASE_AUDIT.md.
+  arm64:
+    name: CLI (ARM64, advisory)
+    runs-on: ubuntu-24.04-arm
+    continue-on-error: true
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Confirm ARM64 host
+        run: |
+          uname -m
+          test "$(uname -m)" = "aarch64"
+
+      - name: Run portable smoke tests
+        run: python3 -m unittest discover -s tests -p 'test_*.py' -v
+
+      - name: CLI version
+        run: ./apk-workbench --version
