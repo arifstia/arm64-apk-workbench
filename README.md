@@ -1,6 +1,6 @@
 # ARM64 APK Workbench
 
-**Workbench Modifikasi APK Android** — kumpulan perintah CLI otomatis untuk **audit, decode, build, sign, dan verifikasi APK** pada **Ubuntu 26.04 ARM64** maupun **Termux proot-distro**.
+**Workbench Modifikasi APK Android / Android APK Modification Workbench** — alat CLI otomatis untuk **audit, decode, build, sign, dan verifikasi APK** pada **Ubuntu 26.04 ARM64** dan **Termux proot-distro**.
 
 Dibuat dan dipelihara oleh **arifstia** — https://github.com/arifstia
 
@@ -8,11 +8,15 @@ Dibuat dan dipelihara oleh **arifstia** — https://github.com/arifstia
 [![Platform](https://img.shields.io/badge/platform-Linux%20ARM64-5bd8f5?style=flat-square)](https://github.com/arifstia/arm64-apk-workbench)
 [![License](https://img.shields.io/badge/license-MIT-a69bff?style=flat-square)](LICENSE)
 
-> **Bahasa:** [English](README.en.md) | **Bahasa Indonesia** (ini) | [Panduan lengkap](docs/ID.md)
+> **Pilih bahasa / Choose language:** [🇮🇩 Bahasa Indonesia](#bahasa-indonesia) · [🇬🇧 English](#english) · [📖 Panduan lengkap ID](docs/ID.md)
 
 ---
 
-## Fitur
+<a name="bahasa-indonesia"></a>
+
+## 🇮🇩 Bahasa Indonesia
+
+### Fitur
 
 | Fitur | Deskripsi |
 |-------|-----------|
@@ -26,9 +30,7 @@ Dibuat dan dipelihara oleh **arifstia** — https://github.com/arifstia
 | **Ramah ARM64** | RAM rendah, pemrosesan berurutan, tanpa binary x86_64 |
 | **Aman** | APK asli tidak pernah ditimpa, backup tidak dihapus, tidak install APK otomatis |
 
----
-
-## Persyaratan
+### Persyaratan
 
 - **Arsitektur:** ARM64 (`aarch64`)
 - **Sistem:** Ubuntu 26.04 LTS atau Termux proot-distro
@@ -37,11 +39,7 @@ Dibuat dan dipelihara oleh **arifstia** — https://github.com/arifstia
 - **RAM:** minimal 4 GB (disarankan 8 GB untuk APK besar)
 - **Disk:** minimal 10 GB kosong
 
-Tool yang terintegrasi: JADX 1.5.6, APKTool 3.0.3, apksigner, zipalign, aapt/aapt2, smali/baksmali 2.5.2, Androguard 4.1.4.
-
----
-
-## Instalasi
+### Instalasi
 
 ```bash
 git clone https://github.com/arifstia/arm64-apk-workbench.git
@@ -53,7 +51,7 @@ chmod +x install.sh
 Installer akan:
 1. Memverifikasi arsitektur ARM64 dan tool sistem
 2. Mengunduh **APKTool 3.0.3** dari rilis resmi + verifikasi SHA-256
-3. Mengunduh **aapt2 ARM64 native** (dari ADT build-tools 37.0.0) + verifikasi SHA-256
+3. Mengunduh **aapt2 ARM64 native** (ADT build-tools 37.0.0) + verifikasi SHA-256
 4. Membuat wrapper `tools/bin/apktool` dan `tools/bin/aapt2`
 5. Membangkitkan framework APKTool dari Android API 36
 6. Menyiapkan virtual environment Python dan test keystore
@@ -65,9 +63,7 @@ Verifikasi instalasi:
 ./apk-workbench tools
 ```
 
----
-
-## Mulai Cepat
+### Mulai Cepat
 
 ```bash
 # 1. Cek kesehatan sistem
@@ -93,9 +89,7 @@ apk-workbench build -s decoded/decoded_app_TIMESTAMP
 apk-workbench verify output/signed_decoded_app_TIMESTAMP.apk
 ```
 
----
-
-## Referensi Perintah
+### Referensi Perintah
 
 | Perintah | Fungsi | Contoh |
 |----------|--------|--------|
@@ -128,9 +122,7 @@ Opsi global:
 | `normal` | Audit rutin | + resource dan jumlah file DEX |
 | `deep` | Analisis mendalam | + dekompilasi JADX (±80 detik untuk APK 12 MB) |
 
----
-
-## Struktur Workspace
+### Struktur Workspace
 
 ```
 arm64-apk-workbench/
@@ -151,9 +143,7 @@ arm64-apk-workbench/
 └── .venv/          # Virtual environment Python
 ```
 
----
-
-## Alur Kerja Umum
+### Alur Kerja
 
 ```text
 input/app.apk
@@ -173,9 +163,7 @@ decoded/ → build/ → zipalign → apksigner → output/ → verify
 
 > **Catatan:** APK asli di `input/` tidak pernah dimodifikasi. Selalu bekerja pada salinan di `decoded/`.
 
----
-
-## Toolchain
+### Toolchain
 
 | Tool | Versi | Fungsi |
 |------|-------|--------|
@@ -187,42 +175,209 @@ decoded/ → build/ → zipalign → apksigner → output/ → verify
 | smali / baksmali | 2.5.2 | Assembly/disassembly DEX |
 | Androguard | 4.1.4 | Analisis APK berbasis Python |
 
-### Catatan ARM64
-
-- APKTool 2.7 bawaan sistem gagal decode ARSC modern (`targetSdkVersion: 37`). Workbench memakai **APKTool 3.0.3** hasil unduhan terverifikasi.
-- aapt2 bawaan APKTool 3.x adalah binary **x86_64** dan tidak bisa jalan di ARM64. Workbench memakai **aapt2 ARM64 native** dari ADT build-tools 37.0.0.
-- Framework APKTool dibangkitkan dari **Android API 36** agar resource `android:color/system_*` (targetSdk 35+) tersedia.
+**Catatan ARM64:**
+- APKTool 2.7 bawaan sistem gagal decode ARSC modern (`targetSdkVersion: 37`). Workbench memakai **APKTool 3.0.3** terverifikasi.
+- aapt2 bawaan APKTool 3.x adalah binary **x86_64** dan tidak jalan di ARM64. Workbench memakai **aapt2 ARM64 native**.
+- Framework dibangkitkan dari **Android API 36** agar resource `android:color/system_*` (targetSdk 35+) tersedia.
 - Resource Material Components diawali `$` otomatis direname sebelum build dan dicatat di `patches/`.
 
----
+### Laporan
 
-## Laporan & Pengukuran
-
-- [`reports/PERFORMANCE_REPORT.md`](reports/PERFORMANCE_REPORT.md) — hasil pengukuran nyata audit & build
+- [`reports/PERFORMANCE_REPORT.md`](reports/PERFORMANCE_REPORT.md) — hasil pengukuran nyata
 - [`reports/GITHUB_RELEASE_AUDIT.md`](reports/GITHUB_RELEASE_AUDIT.md) — audit kesiapan rilis
-- [`TOOLCHAIN.md`](TOOLCHAIN.md) — referensi detail toolchain
-- [`WORKFLOW.md`](WORKFLOW.md) — alur kerja
-- [`docs/ID.md`](docs/ID.md) — panduan lengkap bahasa Indonesia
+- [`TOOLCHAIN.md`](TOOLCHAIN.md) · [`WORKFLOW.md`](WORKFLOW.md) · [`docs/ID.md`](docs/ID.md)
+
+### Keamanan & Etika
+
+Tool ini **hanya untuk penggunaan yang sah** — menganalisis atau memodifikasi APK yang Anda miliki atau memiliki izin untuk memodifikasinya. Workbench **tidak pernah** menimpa APK asli, menghapus backup, menginstall APK otomatis, menyertakan private key pihak ketiga, atau mengaktifkan fitur penyalahgunaan. Lihat [SECURITY.md](SECURITY.md).
+
+### Lisensi
+
+MIT License — lihat [LICENSE](LICENSE). Copyright (c) 2026 **arifstia**.
 
 ---
 
-## Keamanan & Etika
+<a name="english"></a>
 
-Tool ini **hanya untuk penggunaan yang sah** — menganalisis atau memodifikasi APK yang Anda miliki atau memiliki izin untuk memodifikasinya.
+## 🇬🇧 English
 
-Workbench **tidak pernah**:
-- Menimpa APK asli di `input/`
-- Menghapus backup
-- Menginstall APK ke perangkat secara otomatis
-- Menyertakan private key pihak ketiga (hanya test key self-signed untuk development)
-- Mengaktifkan fitur penyalahgunaan
+### Features
 
-Lihat [SECURITY.md](SECURITY.md) untuk detail.
+| Feature | Description |
+|---------|-------------|
+| **APK Audit** | Manifest, permissions, DEX, native libraries, resources and certificates |
+| **Performance modes** | `fast`, `normal`, `deep` (deep includes JADX decompilation) |
+| **Decode APK** | Extract resources and Smali with APKTool 3.0.3 (targetSdk 37 support) |
+| **Build APK** | Rebuild from decoded source → zipalign → sign → verify |
+| **Sign & Verify** | Test-key signing and v1/v2/v3 verification via apksigner |
+| **Automatic backup** | Timestamped copy before any modification |
+| **Patch records** | Change records stored in `patches/` |
+| **ARM64 friendly** | Low RAM, sequential processing, no x86_64 binaries |
+| **Safe** | Originals are never overwritten, backups never deleted, no auto-install |
 
----
+### Requirements
 
-## Lisensi
+- **Architecture:** ARM64 (`aarch64`)
+- **OS:** Ubuntu 26.04 LTS or Termux proot-distro
+- **Python:** 3.14+ (with virtual environment)
+- **Java:** OpenJDK 21+ (APKTool & JADX)
+- **RAM:** 4 GB minimum (8 GB recommended for large APKs)
+- **Disk:** 10 GB free space
 
-MIT License — lihat [LICENSE](LICENSE). Lisensi tool pihak ketiga tetap berlaku sebagaimana mestinya.
+Bundled tools: JADX 1.5.6, APKTool 3.0.3, apksigner, zipalign, aapt/aapt2, smali/baksmali 2.5.2, Androguard 4.1.4.
 
-Copyright (c) 2026 **arifstia**
+### Installation
+
+```bash
+git clone https://github.com/arifstia/arm64-apk-workbench.git
+cd arm64-apk-workbench
+chmod +x install.sh
+./install.sh
+```
+
+The installer will:
+1. Verify ARM64 architecture and system tools
+2. Download **APKTool 3.0.3** from the official release + verify SHA-256
+3. Download **native ARM64 aapt2** (ADT build-tools 37.0.0) + verify SHA-256
+4. Create `tools/bin/apktool` and `tools/bin/aapt2` wrappers
+5. Generate the APKTool framework from Android API 36
+6. Set up the Python virtual environment and test keystore
+
+Verify the installation:
+
+```bash
+./apk-workbench doctor
+./apk-workbench tools
+```
+
+### Quick Start
+
+```bash
+# 1. System health check
+apk-workbench doctor
+
+# 2. Audit an APK (normal mode)
+apk-workbench audit input/app.apk
+
+# 3. Fast / deep audit
+apk-workbench audit input/app.apk --mode fast
+apk-workbench audit input/app.apk --mode deep
+
+# 4. Back up the original APK
+apk-workbench backup input/app.apk
+
+# 5. Decode resources and Smali
+apk-workbench decode input/app.apk
+
+# 6. Rebuild from decoded source
+apk-workbench build -s decoded/decoded_app_TIMESTAMP
+
+# 7. Verify the built APK
+apk-workbench verify output/signed_decoded_app_TIMESTAMP.apk
+```
+
+### Command Reference
+
+| Command | Purpose | Example |
+|---------|---------|---------|
+| `--help` | Show help | `apk-workbench --help` |
+| `--version` | CLI version | `apk-workbench --version` |
+| `doctor` | Check system & toolchain | `apk-workbench doctor` |
+| `tools` | List tools + versions | `apk-workbench tools` |
+| `audit` | Analyze APK | `apk-workbench audit app.apk --mode normal` |
+| `analyze` | Alias for `audit` | `apk-workbench analyze app.apk` |
+| `decode` | Decode resources & Smali | `apk-workbench decode app.apk` |
+| `backup` | Timestamped backup | `apk-workbench backup app.apk` |
+| `build` | Build + sign + verify | `apk-workbench build -s decoded/decoded_app_TIMESTAMP` |
+| `verify` | Verify signature | `apk-workbench verify output/app.apk` |
+| `patch` | Record changes | `apk-workbench patch -s decoded/decoded_app_TIMESTAMP -o "description"` |
+
+Global options:
+
+```bash
+--mode {fast,normal,deep}   # Audit mode (default: normal)
+-s, --source DIR            # Source directory for build/patch
+-o, --output VALUE          # Output / patch description
+-v, --verbose               # Verbose output
+```
+
+### Audit Modes
+
+| Mode | When to use | Details |
+|------|-------------|---------|
+| `fast` | CI / smoke tests | Manifest, permissions, native libraries |
+| `normal` | Routine audits | + resources and DEX file count |
+| `deep` | In-depth analysis | + JADX decompilation (~80 s for a 12 MB APK) |
+
+### Workspace Structure
+
+```
+arm64-apk-workbench/
+├── input/          # Original APKs (read-only)
+├── original/       # Copies of originals
+├── backup/         # Timestamped backups
+├── decoded/        # Decoded resources & Smali
+├── analysis/       # Audit reports (JSON + Markdown)
+├── patches/        # Modification records
+├── build/          # Intermediate APKs & test keystore
+├── output/         # Final signed APKs
+├── logs/           # Execution logs
+├── scripts/        # CLI engine (Python)
+├── config/         # Configuration
+├── reports/        # Final reports (release & performance)
+├── tools/          # Tool wrappers (binaries downloaded by installer)
+├── docs/           # Indonesian documentation
+└── .venv/          # Python virtual environment
+```
+
+### Workflow
+
+```text
+input/app.apk
+   │
+   ├─► backup/           (automatic backup)
+   │
+   ├─► decode/           (resources + Smali)
+   │        │
+   │        ├─► edit Smali/XML as needed
+   │        │
+   │        └─► patch record written to patches/
+   │
+   └─► analysis/         (JSON + Markdown audit reports)
+
+decoded/ → build/ → zipalign → apksigner → output/ → verify
+```
+
+> **Note:** APKs in `input/` are never modified. Always work on a copy in `decoded/`.
+
+### Toolchain
+
+| Tool | Version | Purpose |
+|------|---------|---------|
+| JADX | 1.5.6 | DEX → Java/Kotlin decompiler |
+| APKTool | 3.0.3 (project-local) | Resource/Smali decode & build, targetSdk 37 |
+| apksigner | 0.9 | APK signing & verification |
+| zipalign | 10.0 | APK ZIP alignment |
+| aapt / aapt2 | 2.19 | Android asset packaging |
+| smali / baksmali | 2.5.2 | DEX assembly/disassembly |
+| Androguard | 4.1.4 | Python-based APK analysis |
+
+**ARM64 notes:**
+- System APKTool 2.7 cannot decode modern ARSC (`targetSdkVersion: 37`); this project uses verified **APKTool 3.0.3**.
+- APKTool 3.x ships an **x86_64** aapt2 that cannot run on ARM64; this project uses **native ARM64 aapt2**.
+- The framework is generated from **Android API 36** so `android:color/system_*` resources (targetSdk 35+) resolve.
+- Material Components resources starting with `$` are renamed before build and recorded in `patches/`.
+
+### Reports
+
+- [`reports/PERFORMANCE_REPORT.md`](reports/PERFORMANCE_REPORT.md) — measured timings
+- [`reports/GITHUB_RELEASE_AUDIT.md`](reports/GITHUB_RELEASE_AUDIT.md) — release readiness audit
+- [`TOOLCHAIN.md`](TOOLCHAIN.md) · [`WORKFLOW.md`](WORKFLOW.md) · [`docs/ID.md`](docs/ID.md)
+
+### Security & Ethics
+
+This toolset is for **authorized use only** — analyzing or modifying APKs you own or have permission to modify. It **never** overwrites originals, deletes backups, installs APKs automatically, ships third-party private keys, or enables abuse features. See [SECURITY.md](SECURITY.md).
+
+### License
+
+MIT License — see [LICENSE](LICENSE). Copyright (c) 2026 **arifstia**.
