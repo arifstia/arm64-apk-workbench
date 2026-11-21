@@ -37,7 +37,7 @@ def make_cli(**overrides):
 
 class TestBranding(unittest.TestCase):
     def test_version_is_defined(self):
-        self.assertEqual(wb.VERSION, "1.0.0")
+        self.assertEqual(wb.VERSION, "1.0.1")
 
     def test_banner_has_author_and_repo(self):
         self.assertIn("arifstia", wb.BANNER)

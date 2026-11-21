@@ -384,7 +384,12 @@ apk-workbench audit app.apk --mode deep
 
 ## Roadmap
 
-### v1.0.0 (Current)
+### v1.0.1 (Current)
+- ✅ Perbaikan portabilitas CLI (bisa di-clone ke direktori mana saja)
+- ✅ APKTool 3.0.3 + aapt2 ARM64 native + framework API 36 (targetSdk 37)
+- ✅ GitHub Actions smoke test & dokumentasi bilingual
+
+### v1.0.0
 - ✅ APK audit, decode, analysis
 - ✅ Build workflow
 - ✅ CLI dengan semua command

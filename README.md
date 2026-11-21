@@ -5,7 +5,7 @@
 Dibuat dan dipelihara oleh **arifstia** — https://github.com/arifstia
 
 [![Smoke Test](https://github.com/arifstia/arm64-apk-workbench/actions/workflows/smoke.yml/badge.svg)](https://github.com/arifstia/arm64-apk-workbench/actions/workflows/smoke.yml)
-[![Release](https://img.shields.io/badge/release-v1.0.0-22c55e?style=flat-square)](https://github.com/arifstia/arm64-apk-workbench/releases/tag/v1.0.0)
+[![Release](https://img.shields.io/badge/release-v1.0.1-22c55e?style=flat-square)](https://github.com/arifstia/arm64-apk-workbench/releases/tag/v1.0.1)
 [![Stars](https://img.shields.io/github/stars/arifstia/arm64-apk-workbench?style=flat-square)](https://github.com/arifstia/arm64-apk-workbench/stargazers)
 [![Forks](https://img.shields.io/github/forks/arifstia/arm64-apk-workbench?style=flat-square)](https://github.com/arifstia/arm64-apk-workbench/forks)
 [![Platform](https://img.shields.io/badge/platform-Linux%20ARM64-5bd8f5?style=flat-square)](https://github.com/arifstia/arm64-apk-workbench)

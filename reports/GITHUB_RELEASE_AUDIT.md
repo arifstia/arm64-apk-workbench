@@ -2,15 +2,16 @@
 
 **Audit date:** 2026-11-21  
 **Project:** `arm64-apk-workbench`  
-**Version:** 1.0.0  
+**Version:** 1.0.1 (audit awal dilakukan untuk 1.0.0; rilis 1.0.1 mencakup perbaikan portabilitas)  
 **Author / Maintainer:** arifstia — https://github.com/arifstia  
 **License:** MIT (original code); third-party tool licenses preserved  
 **Workspace:** `/root/projects/apk-workbench`  
 **Platform:** Ubuntu 26.04.1 LTS, Linux `aarch64` (ARM64), Python 3.14.4, OpenJDK 25.0.5.1
 
-> Scope: local build + verification readiness for a future GitHub release.
-> **No repository was created, no commit was made, and nothing was pushed or published.**
-> Publication requires explicit user approval per project rules.
+> Scope: local build + verification readiness for GitHub release.
+> Status terakhir: repository, commit, tag `v1.0.0` dan release telah dipublikasikan setelah
+> persetujuan eksplisit. Rilis `v1.0.1` menyusul untuk memasukkan perbaikan portabilitas yang
+> tidak ada di arsip source `v1.0.0`. Lihat `reports/PROMOTION_STATUS.md`.
 
 ---
 
@@ -208,7 +209,8 @@ build/, output/, decoded/, backup/, input/*.apk, analysis/*.json, logs/, *.jks
 - [ ] Run `git init` locally; review `git status` against §6; create first commit.
 - [ ] Optionally run `./uninstall.sh` in a throwaway copy to validate interactive flow.
 - [ ] Confirm no secrets, APKs, or test keys are staged (`git status` + `.gitignore` rules).
-- [ ] Tag `v1.0.0` and create the GitHub release **after explicit approval** (given by maintainer).
+- [x] Tag `v1.0.0` and create the GitHub release **after explicit approval** (given by maintainer).
+- [x] Tag `v1.0.1` to ship the portability fix in the downloadable source archive.
 
 ---
 

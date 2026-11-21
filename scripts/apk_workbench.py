@@ -19,7 +19,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import List, Optional
 
-VERSION = "1.0.0"
+VERSION = "1.0.1"
 AUTHOR = "arifstia"
 
 BANNER = f"""apk-workbench v{VERSION}
