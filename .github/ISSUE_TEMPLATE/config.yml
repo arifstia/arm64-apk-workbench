@@ -1,0 +1,11 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Panduan bahasa Indonesia
+    url: https://github.com/arifstia/arm64-apk-workbench/blob/main/docs/ID.md
+    about: Dokumentasi lengkap dan alur kerja sebelum membuka issue.
+  - name: Laporan rilis & performa
+    url: https://github.com/arifstia/arm64-apk-workbench/tree/main/reports
+    about: Cek dulu apakah kendala Anda sudah tercatat di laporan performa/rilis.
+  - name: Diskusi & pertanyaan
+    url: https://github.com/arifstia/arm64-apk-workbench/discussions
+    about: Untuk pertanyaan umum, gunakan Discussions.

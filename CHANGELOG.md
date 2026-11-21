@@ -5,6 +5,22 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+- GitHub Actions smoke test (`.github/workflows/smoke.yml`) with portable unit tests (`tests/test_smoke.py`)
+- Issue templates (bug report, feature request) and issue configuration
+- Bilingual README (Indonesian + English in one file) with real output examples and one-line install
+- Social preview banner (`docs/assets/social-preview.png` + SVG source)
+- Promotional articles in Indonesian and English, plus ready-to-paste awesome-list entries
+- GitHub repository topics, description, homepage and issue tracking enabled
+
+### Fixed
+- **Portability:** both CLI entry points had a hard-coded `/root/projects/apk-workbench` path;
+  they now resolve the workspace relative to `__file__` and work after cloning anywhere
+
+---
+
 ## [1.0.0] - 2026-11-21
 
 ### Added

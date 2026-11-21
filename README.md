@@ -4,11 +4,22 @@
 
 Dibuat dan dipelihara oleh **arifstia** — https://github.com/arifstia
 
+[![Smoke Test](https://github.com/arifstia/arm64-apk-workbench/actions/workflows/smoke.yml/badge.svg)](https://github.com/arifstia/arm64-apk-workbench/actions/workflows/smoke.yml)
 [![Release](https://img.shields.io/badge/release-v1.0.0-22c55e?style=flat-square)](https://github.com/arifstia/arm64-apk-workbench/releases/tag/v1.0.0)
+[![Stars](https://img.shields.io/github/stars/arifstia/arm64-apk-workbench?style=flat-square)](https://github.com/arifstia/arm64-apk-workbench/stargazers)
+[![Forks](https://img.shields.io/github/forks/arifstia/arm64-apk-workbench?style=flat-square)](https://github.com/arifstia/arm64-apk-workbench/forks)
 [![Platform](https://img.shields.io/badge/platform-Linux%20ARM64-5bd8f5?style=flat-square)](https://github.com/arifstia/arm64-apk-workbench)
 [![License](https://img.shields.io/badge/license-MIT-a69bff?style=flat-square)](LICENSE)
 
 > **Pilih bahasa / Choose language:** [🇮🇩 Bahasa Indonesia](#bahasa-indonesia) · [🇬🇧 English](#english) · [📖 Panduan lengkap ID](docs/ID.md)
+
+**Instansi cepat / Quick install:**
+
+```bash
+git clone https://github.com/arifstia/arm64-apk-workbench.git && cd arm64-apk-workbench && chmod +x install.sh && ./install.sh
+```
+
+![Social preview](docs/assets/social-preview.png)
 
 ---
 
@@ -61,6 +72,51 @@ Verifikasi instalasi:
 ```bash
 ./apk-workbench doctor
 ./apk-workbench tools
+```
+
+### Contoh Output Nyata
+
+Hasil `doctor` di Ubuntu 26.04 ARM64 ( Termux proot-distro ):
+
+```text
+$ ./apk-workbench doctor
+=== apk-workbench doctor ===
+[OK]   Architecture: aarch64
+[OK]   OS: Ubuntu 26.04.1 LTS
+[OK]   Java: openjdk version "25.0.5.1"
+[OK]   APKTool: 3.0.3
+[OK]   apksigner: 0.9
+[OK]   Androguard: androguard, version 4.1.4
+All checks passed. Environment is ready.
+```
+
+Audit cepat:
+
+```text
+$ ./apk-workbench audit input/mini2.apk --mode fast
+[+] Auditing: mini2.apk (mode=fast)
+    SHA-256: ec83d412d74e65c5ba0804710c9d341095ddd76ce6017cdd3fcd7a9dae092af6
+[+] Basic info & certificates...
+[+] Manifest (Androguard)...
+[+] Native libraries...
+[+] Generating reports...
+Reports generated:
+  JSON: analysis/audit_mini2_TIMESTAMP.json
+  Markdown: analysis/audit_mini2_TIMESTAMP.md
+```
+
+Build ulang APK targetSdk 37 (12 MB) hingga terverifikasi:
+
+```text
+$ ./apk-workbench build -s decoded/decoded_test_v3_full
+    Compatibility: renamed 41 $-prefixed resources (recorded in patches/)
+[1/5] Building APK with apktool...        OK (29.77s)
+[2/5] Using existing test keystore.
+[3/5] Zipaligning (4-byte alignment)...   OK (0.14s)
+[4/5] Signing with test key...            OK (2.09s)
+[5/5] Verifying signature...              Signature VALID
+[+] Build COMPLETE and VERIFIED
+    SHA-256: ce3dcb3a3c244086a3ea47e29ec8872981c2efe716b6333fc34686f8acd08577
 ```
 
 ### Mulai Cepat
@@ -187,6 +243,15 @@ decoded/ → build/ → zipalign → apksigner → output/ → verify
 - [`reports/GITHUB_RELEASE_AUDIT.md`](reports/GITHUB_RELEASE_AUDIT.md) — audit kesiapan rilis
 - [`TOOLCHAIN.md`](TOOLCHAIN.md) · [`WORKFLOW.md`](WORKFLOW.md) · [`docs/ID.md`](docs/ID.md)
 
+### Artikel & Kontribusi
+
+- [`docs/ARTIKEL_PROMOSI_ID.md`](docs/ARTIKEL_PROMOSI_ID.md) — artikel Bahasa Indonesia siap publish
+- [`docs/PROMOTIONAL_ARTICLE_EN.md`](docs/PROMOTIONAL_ARTICLE_EN.md) — English version
+- [`docs/AWESOME_LIST_ENTRIES.md`](docs/AWESOME_LIST_ENTRIES.md) — entri siap pakai untuk awesome-list
+- [`CONTRIBUTING.md`](CONTRIBUTING.md) — cara berkontribusi · [`CODE_OF_CONDUCT.md`](CODE_OF_CONDUCT.md)
+
+CI smoke test berjalan otomatis setiap push (`python3 -m unittest discover -s tests -v`).
+
 ### Keamanan & Etika
 
 Tool ini **hanya untuk penggunaan yang sah** — menganalisis atau memodifikasi APK yang Anda miliki atau memiliki izin untuk memodifikasinya. Workbench **tidak pernah** menimpa APK asli, menghapus backup, menginstall APK otomatis, menyertakan private key pihak ketiga, atau mengaktifkan fitur penyalahgunaan. Lihat [SECURITY.md](SECURITY.md).
@@ -248,6 +313,51 @@ Verify the installation:
 ```bash
 ./apk-workbench doctor
 ./apk-workbench tools
+```
+
+### Real Output Examples
+
+`doctor` on Ubuntu 26.04 ARM64 (Termux proot-distro):
+
+```text
+$ ./apk-workbench doctor
+=== apk-workbench doctor ===
+[OK]   Architecture: aarch64
+[OK]   OS: Ubuntu 26.04.1 LTS
+[OK]   Java: openjdk version "25.0.5.1"
+[OK]   APKTool: 3.0.3
+[OK]   apksigner: 0.9
+[OK]   Androguard: androguard, version 4.1.4
+All checks passed. Environment is ready.
+```
+
+Fast audit:
+
+```text
+$ ./apk-workbench audit input/mini2.apk --mode fast
+[+] Auditing: mini2.apk (mode=fast)
+    SHA-256: ec83d412d74e65c5ba0804710c9d341095ddd76ce6017cdd3fcd7a9dae092af6
+[+] Basic info & certificates...
+[+] Manifest (Androguard)...
+[+] Native libraries...
+[+] Generating reports...
+Reports generated:
+  JSON: analysis/audit_mini2_TIMESTAMP.json
+  Markdown: analysis/audit_mini2_TIMESTAMP.md
+```
+
+Rebuilding a 12 MB targetSdk 37 APK, through signature verification:
+
+```text
+$ ./apk-workbench build -s decoded/decoded_test_v3_full
+    Compatibility: renamed 41 $-prefixed resources (recorded in patches/)
+[1/5] Building APK with apktool...        OK (29.77s)
+[2/5] Using existing test keystore.
+[3/5] Zipaligning (4-byte alignment)...   OK (0.14s)
+[4/5] Signing with test key...            OK (2.09s)
+[5/5] Verifying signature...              Signature VALID
+[+] Build COMPLETE and VERIFIED
+    SHA-256: ce3dcb3a3c244086a3ea47e29ec8872981c2efe716b6333fc34686f8acd08577
 ```
 
 ### Quick Start
@@ -373,6 +483,15 @@ decoded/ → build/ → zipalign → apksigner → output/ → verify
 - [`reports/PERFORMANCE_REPORT.md`](reports/PERFORMANCE_REPORT.md) — measured timings
 - [`reports/GITHUB_RELEASE_AUDIT.md`](reports/GITHUB_RELEASE_AUDIT.md) — release readiness audit
 - [`TOOLCHAIN.md`](TOOLCHAIN.md) · [`WORKFLOW.md`](WORKFLOW.md) · [`docs/ID.md`](docs/ID.md)
+
+### Articles & Contributing
+
+- [`docs/ARTIKEL_PROMOSI_ID.md`](docs/ARTIKEL_PROMOSI_ID.md) — ready-to-publish Indonesian article
+- [`docs/PROMOTIONAL_ARTICLE_EN.md`](docs/PROMOTIONAL_ARTICLE_EN.md) — English version
+- [`docs/AWESOME_LIST_ENTRIES.md`](docs/AWESOME_LIST_ENTRIES.md) — ready-to-paste awesome-list entries
+- [`CONTRIBUTING.md`](CONTRIBUTING.md) · [`CODE_OF_CONDUCT.md`](CODE_OF_CONDUCT.md)
+
+A CI smoke test runs on every push (`python3 -m unittest discover -s tests -v`).
 
 ### Security & Ethics
 

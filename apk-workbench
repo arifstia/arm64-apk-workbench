@@ -7,8 +7,8 @@ https://github.com/arifstia/arm64-apk-workbench
 import sys
 from pathlib import Path
 
-# Add scripts directory to path
-workspace = Path("/root/projects/apk-workbench")
+# Resolve workspace relative to this file so the CLI works after cloning anywhere
+workspace = Path(__file__).resolve().parent
 sys.path.insert(0, str(workspace / "scripts"))
 
 # Import and run the CLI

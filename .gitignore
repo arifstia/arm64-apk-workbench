@@ -55,6 +55,7 @@ reports/*.txt
 !reports/.gitkeep
 !reports/PERFORMANCE_REPORT.md
 !reports/GITHUB_RELEASE_AUDIT.md
+!reports/PROMOTION_STATUS.md
 
 # IDE
 .vscode/

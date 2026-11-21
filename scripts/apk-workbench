@@ -16,7 +16,8 @@ from typing import List, Optional
 class WorkbenchCLI:
     def __init__(self, args: argparse.Namespace):
         self.args = args
-        self.workspace = Path("/root/projects/apk-workbench")
+        # Resolve workspace relative to this file (scripts/ -> project root)
+        self.workspace = Path(__file__).resolve().parent.parent
         self.tools_versions = {}
 
     def run_cmd(self, cmd: List[str], timeout: Optional[int] = None) -> subprocess.CompletedProcess:
