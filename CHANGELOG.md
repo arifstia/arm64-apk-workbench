@@ -17,7 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `--export` menghasilkan bundle; `--apply --record ID` menerapkannya ke source lain
   - `--list`, `--dry-run`, dan `--record` untuk kontrol penuh
   - Semua timpaan didahului backup; tidak ada file yang dihapus; symlink dan path traversal ditolak
-  - `scripts/apk_patch.py` + 10 unit test filesystem; `requirements.txt` (androguard 4.1.4 terpin)
+  - `scripts/apk_patch.py` + 11 unit test filesystem; `requirements.txt` (androguard 4.1.4 terpin)
 
 ### Measured
 - Deep audit `input/test.apk`: **62 s → 0,58 s** pada cache hit (~106× lebih cepat)

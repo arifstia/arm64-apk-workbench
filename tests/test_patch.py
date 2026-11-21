@@ -102,6 +102,13 @@ class TestPatchManager(unittest.TestCase):
         )
         self.assertTrue(any((self.root / "backup").glob("before_apply_*/*")))
 
+    def test_empty_bundle_can_be_applied_as_noop(self):
+        rec = self.manager.create(self.src)
+        empty = self.manager.export(self.src, rec, "empty_bundle")
+        self.assertEqual(empty["file_count"], 0)
+        result = self.manager.apply(self.src, empty)
+        self.assertEqual(result["applied"], [])
+
     def test_legacy_hash_record_cannot_be_restored(self):
         legacy = self.root / "patches" / "patch_legacy.json"
         legacy.parent.mkdir(parents=True, exist_ok=True)

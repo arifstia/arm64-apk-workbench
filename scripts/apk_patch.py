@@ -233,6 +233,7 @@ class PatchManager:
         changes = self.diff(source_dir, record)
         name = bundle_name or f"bundle_{source_dir.name}_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}"
         content_dir = self.snapshots_dir / name / "files"
+        content_dir.mkdir(parents=True, exist_ok=True)
         current = collect_files(source_dir)
 
         hashes: Dict[str, str] = {}

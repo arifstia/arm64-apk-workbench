@@ -56,8 +56,13 @@ jobs:
           grep -q 'EDITED' "$SRC/AndroidManifest.xml"
           ./apk-workbench patch -s "$SRC" --rollback
           grep -q '<manifest/>' "$SRC/AndroidManifest.xml"
-          ./apk-workbench patch -s "$SRC" --export --bundle-name ci_bundle
+          printf '<manifest BUNDLED/>' > "$SRC/AndroidManifest.xml"
+          ./apk-workbench patch -s "$SRC" --export --bundle-name ci_bundle | grep '1 changed file'
+          printf '<manifest CURRENT/>' > "$SRC/AndroidManifest.xml"
           ./apk-workbench patch -s "$SRC" --apply --record ci_bundle --dry-run | grep 'DRY-RUN'
+          grep -q 'CURRENT' "$SRC/AndroidManifest.xml"
+          ./apk-workbench patch -s "$SRC" --apply --record ci_bundle | grep 'Applied: 1'
+          grep -q 'BUNDLED' "$SRC/AndroidManifest.xml"
           echo "OK: patch workflow"
 
       - name: CLI tool inventory (informational)
