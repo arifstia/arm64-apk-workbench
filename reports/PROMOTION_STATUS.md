@@ -20,7 +20,7 @@ Laporan ini mencatat apa yang sudah dikerjakan untuk meningkatkan visibilitas
 | Real demo output | Contoh `doctor`, `audit --mode fast`, dan `build` targetSdk 37 di kedua bahasa | ✅ |
 | One-line install | Ditaruh di dekat bagian atas README | ✅ |
 | Badge | CI, release, stars, forks, platform, MIT | ✅ |
-| GitHub Actions | `.github/workflows/smoke.yml` — x86_64 + ARM64 (advisory), 10 unit tests, guard binary/secret | ✅ |
+| GitHub Actions | `.github/workflows/smoke.yml` — x86_64 + ARM64 (advisory), 10 unit tests, guard binary/secret. File ada di lokal, **belum ter-push**: PAT tidak punya izin `Workflows` | ⚠️ |
 | Unit tests | `tests/test_smoke.py` — 10 test, dijalankan lokal: **OK** (0.053s) | ✅ |
 | Issue templates | Bug report, feature request, config | ✅ |
 | Artikel promosi | `docs/ARTIKEL_PROMOSI_ID.md`, `docs/PROMOTIONAL_ARTICLE_EN.md` | ✅ |
@@ -30,6 +30,21 @@ Laporan ini mencatat apa yang sudah dikerjakan untuk meningkatkan visibilitas
 ---
 
 ## ⚠️ Perlu aksi manual di UI GitHub
+
+0. **Izinkan PAT menulis workflow (dibutuhkan agar CI aktif)**
+   - GitHub menolak push `.github/workflows/smoke.yml` dengan pesan:
+     `refusing to allow a Personal Access Token to create or update workflow ... without workflow scope`.
+   - Buka https://github.com/settings/personal-access-tokens → token `github_pat_...` →
+     **Repository permissions** → **Workflows** → pilih **Read and write** → **Save**.
+   - Setelah itu jalankan:
+     ```bash
+     cd /root/projects/apk-workbench
+     git add .github/workflows/smoke.yml
+     git commit -m "ci: add smoke test workflow"
+     git push origin main
+     ```
+   - Alternatif tanpa mengubah izin: buka file `.github/workflows/smoke.yml` di GitHub Web,
+     klik **Add file → Upload files**, unggah file dari lokal, lalu commit langsung di browser.
 
 1. **Pasang Social Preview image**
    - Buka repo → **Settings** → **General** → **Social preview** → **Upload image**
@@ -68,4 +83,5 @@ Laporan ini mencatat apa yang sudah dikerjakan untuk meningkatkan visibilitas
   `reports/PERFORMANCE_REPORT.md` dan `reports/GITHUB_RELEASE_AUDIT.md`.
 - Image generator AI gagal karena kredensial tidak valid; social preview dibuat sebagai
   SVG lalu dikonversi ke PNG dengan ImageMagick yang tersedia lokal.
-- Label GitHub belum terpasang karena keterbatasan izin token, bukan karena diabaikan.
+- Label GitHub dan workflow CI belum terpasang karena keterbatasan izin token, bukan karena diabaikan;
+  semua file sudah disiapkan secara lokal dan langkahnya didokumentasikan di atas.
