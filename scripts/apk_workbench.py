@@ -243,8 +243,27 @@ class WorkbenchCLI:
         sys.path.insert(0, str(self.workspace / "scripts"))
         try:
             from apk_audit import APKAuditor
+            from apk_cache import AuditCache
+
             auditor = APKAuditor(str(apk_path), str(output_dir), mode=mode)
+            use_cache = not getattr(self.args, "no_cache", False)
+            cache = AuditCache(output_dir) if use_cache else None
+
+            if cache is not None:
+                sha256 = auditor.report["audit_metadata"]["sha256"]
+                cached = cache.get(sha256, mode)
+                if cached is not None:
+                    print(f"[CACHE HIT] Reusing audit for {apk_path.name} (mode={mode})")
+                    auditor.apply_cache(cached)
+                    auditor.generate_reports()
+                    return 0
+                print("[CACHE MISS] Running full analysis...")
+
             auditor.run()
+            if cache is not None:
+                path = cache.put(auditor.report)
+                if path:
+                    print(f"[CACHE] Stored result: {path.name}")
             return 0
         except Exception as e:
             print(f"[-] Audit failed: {e}")
@@ -523,6 +542,10 @@ Performance modes (audit):
   normal    Adds resource analysis and quick DEX count (default)
   deep      Full DEX analysis + JADX decompilation summary
 
+Audit caching:
+  Results are cached per APK SHA-256 + mode in analysis/.cache/ (deep audits
+  become near-instant on repeat). Use --no-cache to force a full run.
+
 Examples:
   apk-workbench doctor
   apk-workbench audit app.apk --mode fast
@@ -543,6 +566,8 @@ Examples:
     parser.add_argument("-v", "--verbose", action="store_true", help="Verbose output")
     parser.add_argument("--mode", choices=["fast", "normal", "deep"], default="normal",
                         help="Performance mode for audit (default: normal)")
+    parser.add_argument("--no-cache", action="store_true",
+                        help="Force a full audit, ignoring any cached result")
     args = parser.parse_args()
     cli = WorkbenchCLI(args)
     sys.exit(cli.run())

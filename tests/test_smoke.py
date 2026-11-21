@@ -30,6 +30,7 @@ def make_cli(**overrides):
         "output": None,
         "verbose": False,
         "mode": "normal",
+        "no_cache": False,
     }
     values.update(overrides)
     return wb.WorkbenchCLI(argparse.Namespace(**values))

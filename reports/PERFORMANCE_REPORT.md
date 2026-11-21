@@ -34,6 +34,21 @@
 | `fast` | ~1.4 s | `basic_info=0.666`, `manifest=0.709`, `native_libraries=0.005` | `analysis/audit_test_20261121_032706.json` |
 | `normal` | ~1.5 s | `basic_info=0.655`, `manifest=0.607`, `native_libraries=0.005`, `resources=0.005`, `dex=0.005` | `analysis/audit_test_20261121_032755.json` |
 
+### 1.1 Audit cache (new in 1.1.0)
+
+Measured with `date +%s%N` around the CLI invocation, same machine, output to a fresh temp dir.
+
+| Scenario | APK | First run (cache miss) | Second run (cache hit) | Speed-up |
+|----------|-----|------------------------|------------------------|----------|
+| `--mode fast` | `input/mini2.apk` | 1.202 s | 0.222 s | ~5.4× |
+| `--mode deep` | `input/test.apk` (12 MB, targetSdk 37) | 62 s | 0.584 s | ~106× |
+
+Cache entries are stored in `analysis/.cache/audit_<sha256>_<mode>_v1.json`. A key consists of
+the APK SHA-256, the audit mode and a schema version; changing any of them forces a fresh run.
+`--no-cache` bypasses the cache entirely. Reports produced from a hit carry
+`audit_metadata.cache.hit = true` and the original run timestamp, and are written with fresh
+filenames so history is preserved.
+
 ---
 
 ## 2. Decode / Build Pipeline

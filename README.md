@@ -33,6 +33,7 @@ git clone https://github.com/arifstia/arm64-apk-workbench.git && cd arm64-apk-wo
 |-------|-----------|
 | **Audit APK** | Analisis manifest, permission, DEX, native library, resource, dan sertifikat |
 | **Mode performa** | `fast`, `normal`, `deep` — sesuai kebutuhan (deep menyertakan dekompilasi JADX) |
+| **Cache audit** | Hasil di-cache per SHA-256 + mode; audit ulang hampir instan (deep: 62 dtk → 0,58 dtk) |
 | **Decode APK** | Ekstrak resource dan Smali dengan APKTool 3.0.3 (mendukung targetSdk 37) |
 | **Build APK** | Build ulang dari source hasil decode → zipalign → tanda tangan → verifikasi |
 | **Sign & Verify** | Signing dengan test key dan verifikasi v1/v2/v3 via apksigner |
@@ -168,6 +169,7 @@ Opsi global:
 -s, --source DIR            # Direktori source untuk build/patch
 -o, --output VALUE          # Output / deskripsi patch
 -v, --verbose               # Output lebih detail
+--no-cache                  # Paksa audit penuh, abaikan cache
 ```
 
 ### Mode Audit
@@ -177,6 +179,10 @@ Opsi global:
 | `fast` | Smoke test / CI | Manifest, permission, library native |
 | `normal` | Audit rutin | + resource dan jumlah file DEX |
 | `deep` | Analisis mendalam | + dekompilasi JADX (±80 detik untuk APK 12 MB) |
+
+**Cache audit:** hasil disimpan di `analysis/.cache/` berdasarkan SHA-256 APK dan mode.
+Audit ulang langsung memakai cache (deep: 62 detik → 0,58 detik). Gunakan `--no-cache`
+untuk memaksa analisis penuh, atau hapus `analysis/.cache/` untuk mengosongkan cache.
 
 ### Struktur Workspace
 
@@ -272,6 +278,7 @@ MIT License — lihat [LICENSE](LICENSE). Copyright (c) 2026 **arifstia**.
 |---------|-------------|
 | **APK Audit** | Manifest, permissions, DEX, native libraries, resources and certificates |
 | **Performance modes** | `fast`, `normal`, `deep` (deep includes JADX decompilation) |
+| **Audit caching** | Results cached per SHA-256 + mode; repeat audits are near-instant (deep: 62 s → 0.58 s) |
 | **Decode APK** | Extract resources and Smali with APKTool 3.0.3 (targetSdk 37 support) |
 | **Build APK** | Rebuild from decoded source → zipalign → sign → verify |
 | **Sign & Verify** | Test-key signing and v1/v2/v3 verification via apksigner |
@@ -409,6 +416,7 @@ Global options:
 -s, --source DIR            # Source directory for build/patch
 -o, --output VALUE          # Output / patch description
 -v, --verbose               # Verbose output
+--no-cache                  # Force a full audit, ignore cache
 ```
 
 ### Audit Modes
@@ -418,6 +426,10 @@ Global options:
 | `fast` | CI / smoke tests | Manifest, permissions, native libraries |
 | `normal` | Routine audits | + resources and DEX file count |
 | `deep` | In-depth analysis | + JADX decompilation (~80 s for a 12 MB APK) |
+
+**Audit cache:** results are stored in `analysis/.cache/`, keyed by APK SHA-256 and mode.
+Repeat audits reuse the cache (deep: 62 s → 0.58 s). Use `--no-cache` to force a full
+analysis, or delete `analysis/.cache/` to clear it.
 
 ### Workspace Structure
 

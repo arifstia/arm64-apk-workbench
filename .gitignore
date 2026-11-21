@@ -28,6 +28,7 @@ decoded/
 # Analysis reports (keep templates, ignore generated)
 analysis/*.json
 analysis/*.md
+analysis/.cache/
 !analysis/README.md
 !analysis/.gitkeep
 

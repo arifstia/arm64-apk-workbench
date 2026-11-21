@@ -259,6 +259,19 @@ class APKAuditor:
         except Exception as e:
             self.report["jadx_decompile"] = f"error: {str(e)[:200]}"
 
+    def apply_cache(self, cached_report: Dict[str, Any]) -> None:
+        """Adopt a cached report, refreshing timestamps and cache metadata."""
+        original_ts = cached_report.get("audit_metadata", {}).get("timestamp", "unknown")
+        self.report = cached_report
+        self._timings = {}
+        meta = self.report.setdefault("audit_metadata", {})
+        meta["cache"] = {
+            "hit": True,
+            "original_timestamp": original_ts,
+            "served_at": datetime.now(timezone.utc).isoformat() + "Z",
+        }
+        meta["timestamp"] = meta["cache"]["served_at"]
+
     def generate_reports(self) -> None:
         timestamp = datetime.utcnow().strftime("%Y%m%d_%H%M%S")
         base = self.output_dir / f"audit_{self.apk_path.stem}_{timestamp}"
@@ -298,6 +311,11 @@ class APKAuditor:
         md.append(f"**Author:** {meta.get('author', 'arifstia')}")
         if r.get("timings_seconds"):
             md.append("**Timings (s):** " + ", ".join(f"{k}={v}" for k, v in r["timings_seconds"].items()))
+        cache_info = meta.get("cache")
+        if cache_info and cache_info.get("hit"):
+            md.append(f"**Cache:** HIT (original run: {cache_info.get('original_timestamp', 'unknown')})")
+        else:
+            md.append("**Cache:** MISS (full analysis performed)")
         md.append("")
 
         md.append("## Basic Information")

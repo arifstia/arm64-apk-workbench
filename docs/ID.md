@@ -397,11 +397,13 @@ apk-workbench audit app.apk --mode deep
 - ✅ ARM64 support
 - ✅ Installer & documentation
 
-### v1.1.0 (Planned)
-- 🔄 Performance improvement & caching
-- 🔄 Better error handling
+### v1.1.0 (In progress)
+- ✅ Cache audit per SHA-256 + mode (deep: 62 s → 0,58 s pada cache hit)
+- ✅ Opsi `--no-cache`
+- 🔄 Better error handling & recovery
 - 🔄 More analysis reports
-- 🔄 FAST/DEEP mode implementation
+- 🔄 Patch apply/rollback
+- ✅ FAST/DEEP mode (sudah ada sejak v1.0.0)
 
 ### v1.2.0 (Planned)
 - 🔄 Advanced project analysis

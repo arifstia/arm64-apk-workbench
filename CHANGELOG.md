@@ -5,6 +5,20 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased] — menuju 1.1.0
+
+### Added
+- **Audit caching**: hasil audit disimpan per SHA-256 APK + mode + versi skema di `analysis/.cache/`
+- Opsi `--no-cache` untuk memaksa analisis penuh
+- Report JSON/Markdown menandai `cache.hit` dan asal timestamp saat hasil diambil dari cache
+- `scripts/apk_cache.py` + 8 unit test khusus cache
+
+### Measured
+- Deep audit `input/test.apk`: **62 s → 0,58 s** pada cache hit (~106× lebih cepat)
+- Fast audit `input/mini2.apk`: **1,20 s → 0,22 s** pada cache hit
+
+---
+
 ## [1.0.1] - 2026-11-21
 
 ### Added
@@ -65,13 +79,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Upcoming
 
-### [1.1.0] - Planned
-- Performance optimization with caching
+### [1.1.0] - In progress
+- ~~Performance optimization with caching~~ — done in Unreleased
 - Improved error handling and recovery
 - Enhanced analysis reports
-- Patch management system
-- Fast mode for quick audits
-- Deep mode for comprehensive analysis
+- Patch management system (apply/rollback)
+- ~~Fast mode for quick audits~~ — shipped in 1.0.0
+- ~~Deep mode for comprehensive analysis~~ — shipped in 1.0.0
 
 ### [1.2.0] - Planned
 - Advanced project analysis

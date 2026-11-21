@@ -30,7 +30,7 @@ jobs:
           python-version: '3.12'
 
       - name: Compile Python sources
-        run: python3 -m py_compile scripts/apk_workbench.py scripts/apk_audit.py scripts/apk_build.py
+        run: python3 -m py_compile scripts/apk_workbench.py scripts/apk_audit.py scripts/apk_cache.py scripts/apk_build.py
 
       - name: Run portable smoke tests
         run: python3 -m unittest discover -s tests -p 'test_*.py' -v
